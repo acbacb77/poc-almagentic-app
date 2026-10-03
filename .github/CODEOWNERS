@@ -1,0 +1,10 @@
+# Revisión humana por defecto
+*                    @acbacb77
+
+# Zonas que gobiernan al agente: nunca cambian sin aprobación humana explícita
+/.github/            @acbacb77
+/.devcontainer/      @acbacb77
+/AGENTS.md           @acbacb77
+/CLAUDE.md           @acbacb77
+/.claude/            @acbacb77
+/.specify/memory/    @acbacb77
