@@ -29,7 +29,30 @@ tests/                   # tests (tarea 5)
 evals/                   # pruebas del harness al cambiar de modelo (tarea C)
 ```
 
-## Trabajar en local
+## Arrancar el agente
 
-Abre el repo en VS Code y elige **Reopen in Container**. El contenedor trae Python 3.12, GitHub CLI y Claude Code.
-No definas `ANTHROPIC_API_KEY` dentro del contenedor: Claude Code usará tu suscripción al iniciar sesión con `claude`.
+1. **Clave de la App, una sola vez.** Copia la clave privada de `almagentic-agent` a `~/.config/almagentic/agent.pem` en tu máquina (en Windows, `%USERPROFILE%\.config\almagentic\agent.pem`). Nunca dentro de un repo.
+2. Abre el repo en VS Code y elige **Reopen in Container**. El contenedor monta la clave en solo lectura y trae Python 3.12, uv, GitHub CLI y Claude Code.
+3. En el terminal del contenedor:
+   ```bash
+   .devcontainer/start-agent.sh
+   ```
+   El script obtiene un token de la App válido 1 hora y solo para este repo, y arranca `claude` como `almagentic-agent[bot]`. Cuando caduque, sal y vuelve a lanzarlo.
+
+No definas `ANTHROPIC_API_KEY` en el contenedor: Claude Code usará tu suscripción.
+
+## El harness del agente
+
+| Capa | Dónde | Qué impone |
+|---|---|---|
+| Contexto | `AGENTS.md`, `CLAUDE.md` | Cómo trabajar y qué no tocar |
+| Constitución | `.specify/memory/constitution.md` | Principios que Spec Kit aplica a cada spec |
+| Permisos | `.claude/settings.json` | Qué ejecuta sin preguntar, qué pregunta y qué tiene prohibido |
+| Hook | `.claude/hooks/guard.py` | Bloquea rutas protegidas, push a main y secretos; registra cada bloqueo en `.claude/audit/` |
+| Sandbox | `.claude/settings.json` → `sandbox` | Red limitada a GitHub y PyPI; sin lectura de `/run/secrets` |
+| Identidad | GitHub App `almagentic-agent` | Token de 1 hora, sin permiso para `.github/workflows/` |
+| Plataforma | CODEOWNERS + ruleset de `main` | PR obligatorio y aprobación humana |
+
+El estándar común vive en [poc-almagentic-core/agent-standards](https://github.com/acbacb77/poc-almagentic-core/tree/main/agent-standards); la versión usada aquí está en `.agent-standards-version`.
+
+Si el sandbox no arranca en tu Docker (Claude Code se niega a iniciar), crea `.claude/settings.local.json` con `{"sandbox": {"failIfUnavailable": false}}` y avísalo: perderás la capa de red, no las demás.

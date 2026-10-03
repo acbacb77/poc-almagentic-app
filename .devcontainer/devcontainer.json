@@ -5,7 +5,16 @@
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": "pip install --user uv && npm install -g @anthropic-ai/claude-code",
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/almagentic/agent.pem,target=/run/secrets/agent.pem,type=bind,readonly"
+  ],
+  "containerEnv": {
+    "AGENT_APP_ID": "5179760",
+    "AGENT_APP_SLUG": "almagentic-agent",
+    "AGENT_REPO": "acbacb77/poc-almagentic-app",
+    "AGENT_KEY_FILE": "/run/secrets/agent.pem"
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends jq bubblewrap socat && pip install --user uv && npm install -g @anthropic-ai/claude-code",
   "forwardPorts": [8000],
   "customizations": {
     "vscode": {
