@@ -29,6 +29,17 @@ tests/                   # tests (tarea 5)
 evals/                   # pruebas del harness al cambiar de modelo (tarea C)
 ```
 
+## Pedir algo
+
+1. Abre un issue con la plantilla **Petición**: qué necesitas, para quién, qué se gana y la urgencia.
+2. En un par de minutos, el agente de triage comenta una **propuesta**: tipo, prioridad, tamaño, criterios de aceptación, preguntas abiertas y posibles duplicados, y pone las etiquetas `tipo:*`, `prioridad:*`, `tamano:*` y `triage:propuesto`.
+3. Un responsable revisa y decide:
+   - **De acuerdo:** añade la etiqueta `aprobado`. Es la señal para que el agente escriba la spec (tarea 4).
+   - **No del todo:** cambia las etiquetas o comenta lo que falta.
+   - **Repetir el triage** tras editar la petición: añade `triage:repetir`.
+
+Las peticiones de personas sin acceso al repo no pasan por el agente: reciben `triage:manual`. Si la propuesta lleva `triage:sospechoso`, el texto parecía contener instrucciones para el agente: revísala con cuidado.
+
 ## Arrancar el agente
 
 1. **Clave de la App, una sola vez.** Copia la clave privada de `almagentic-agent` a `~/.config/almagentic/agent/agent.pem` en tu máquina. Si el repo está en el disco de Windows (también si lo abres desde `/mnt/c` en WSL), la ruta es `%USERPROFILE%\.config\almagentic\agent\agent.pem`. Nunca dentro de un repo, y sin otras claves en esa carpeta: se monta entera en el contenedor.
