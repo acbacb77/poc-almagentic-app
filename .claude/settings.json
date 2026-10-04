@@ -22,7 +22,10 @@
       "Bash(uv run uvicorn *)",
       "WebFetch(domain:fastapi.tiangolo.com)",
       "WebFetch(domain:docs.pydantic.dev)",
-      "WebFetch(domain:docs.python.org)"
+      "WebFetch(domain:docs.python.org)",
+      "Bash(.specify/scripts/bash/*)",
+      "Bash(bash .specify/scripts/bash/*)",
+      "Bash(mkdir -p specs/*)"
     ],
     "ask": [
       "Bash(git push *)",
@@ -40,6 +43,12 @@
       "Edit(/.claude/**)",
       "Edit(/.devcontainer/**)",
       "Edit(/.specify/memory/**)",
+      "Edit(/.specify/templates/**)",
+      "Edit(/.specify/scripts/**)",
+      "Edit(/.specify/workflows/**)",
+      "Edit(/.specify/integrations/**)",
+      "Edit(/.specify/init-options.json)",
+      "Edit(/.specify/integration.json)",
       "Edit(/AGENTS.md)",
       "Edit(/CLAUDE.md)",
       "Edit(/.agent-standards-version)",

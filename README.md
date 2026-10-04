@@ -67,3 +67,15 @@ No definas `ANTHROPIC_API_KEY` en el contenedor: Claude Code usará tu suscripci
 El estándar común vive en [poc-almagentic-core/agent-standards](https://github.com/acbacb77/poc-almagentic-core/tree/main/agent-standards); la versión usada aquí está en `.agent-standards-version`.
 
 Si el sandbox no arranca en tu Docker (Claude Code se niega a iniciar), crea `.claude/settings.local.json` con `{"sandbox": {"failIfUnavailable": false}}` y avísalo: perderás la capa de red, no las demás.
+
+## Spec Kit
+
+El repo incluye [GitHub Spec Kit](https://github.com/github/spec-kit) v1.1.0 para el desarrollo guiado por especificaciones: las skills `/speckit-*` en `.claude/skills/` y las plantillas y scripts en `.specify/`. Los ficheros están versionados, así que el agente no necesita instalar nada. Son parte del harness: el agente no puede editarlos y cualquier cambio pasa por revisión humana (CODEOWNERS).
+
+Para actualizar a otra versión (lo hace una persona, en una rama propia):
+
+```bash
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init --here --force --integration claude --script sh
+```
+
+Después revisa el diff: `specify init` no debe tocar `.specify/memory/constitution.md`, `CLAUDE.md` ni `.claude/settings.json`.
