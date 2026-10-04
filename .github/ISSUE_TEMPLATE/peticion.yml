@@ -1,0 +1,57 @@
+name: Petición
+description: Pide algo nuevo, un cambio, la retirada de algo o informa de un error
+title: "[Petición] "
+labels: ["triage:pendiente"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cuéntanos **qué necesitas y por qué**, no cómo construirlo.
+        Al enviarla, un agente propondrá tipo, prioridad, tamaño y criterios de aceptación. Un responsable decide.
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: ¿Qué tipo de petición es?
+      options:
+        - Algo nuevo
+        - Cambiar algo que ya existe
+        - Algo no funciona
+        - Retirar algo
+        - No estoy seguro
+    validations:
+      required: true
+  - type: textarea
+    id: necesidad
+    attributes:
+      label: ¿Qué necesitas?
+      description: Describe el problema o la necesidad. Si es un error, qué esperabas y qué pasó.
+    validations:
+      required: true
+  - type: input
+    id: para-quien
+    attributes:
+      label: ¿Para quién es?
+      placeholder: "p. ej. clientes de la API, equipo de soporte"
+  - type: textarea
+    id: valor
+    attributes:
+      label: ¿Qué se gana si se hace?
+      description: El impacto para el negocio o para los usuarios.
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: ¿Cómo sabremos que está hecho? (opcional)
+      description: Criterios de aceptación, si los tienes claros.
+  - type: dropdown
+    id: urgencia
+    attributes:
+      label: Urgencia
+      options:
+        - Sin urgencia
+        - Este trimestre
+        - Este mes
+        - Está bloqueando a alguien
+    validations:
+      required: true

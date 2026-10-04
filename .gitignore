@@ -14,3 +14,4 @@ build/
 !.env.example
 .claude/settings.local.json
 .claude/audit/
+.devcontainer/devcontainer-lock.json
