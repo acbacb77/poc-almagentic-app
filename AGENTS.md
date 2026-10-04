@@ -66,6 +66,12 @@ uv run uvicorn app.main:app --reload --app-dir src   # arranque local
 
 Antes de abrir un PR, los cuatro primeros deben pasar sin errores.
 
+## Flujo de una feature (Spec Kit)
+
+1. **Spec.** Con el issue aprobado, crea la rama `spec/<issue>-<slug>` y ejecuta `/speckit-specify` con la petición y las respuestas del responsable en el issue. La spec va en `specs/NNN-<slug>/`. Abre un PR solo con la spec (`Refs #<issue>`); no escribas código todavía.
+2. **Plan, tareas e implementación.** Cuando el PR de la spec esté fusionado, crea `feat/<issue>-<slug>`, ejecuta `/speckit-plan`, `/speckit-tasks` y `/speckit-implement`, y abre el PR con `Closes #<issue>`.
+3. Las plantillas, scripts y configuración de Spec Kit en `.specify/` no se modifican desde una feature.
+
 ## Convenciones de la API
 
 - Todas las rutas van versionadas: `/api/v1/...`. Un cambio incompatible crea `/api/v2/...`; nunca se rompe una versión publicada.
