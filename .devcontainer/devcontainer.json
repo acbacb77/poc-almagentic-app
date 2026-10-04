@@ -8,6 +8,10 @@
   "mounts": [
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/almagentic/agent,target=/run/secrets/agent,type=bind,readonly"
   ],
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined"
+  ],
   "containerEnv": {
     "AGENT_APP_ID": "5179760",
     "AGENT_APP_SLUG": "almagentic-agent",
