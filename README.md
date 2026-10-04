@@ -79,3 +79,13 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init --here
 ```
 
 Después revisa el diff: `specify init` no debe tocar `.specify/memory/constitution.md`, `CLAUDE.md` ni `.claude/settings.json`.
+
+## Sandbox del agente dentro del devcontainer
+
+El sandbox de Claude Code usa bubblewrap, que necesita crear *user namespaces*. El perfil seccomp por defecto de Docker lo impide para usuarios sin privilegios, y cada comando falla con `bwrap: No permissions to create a new namespace`. Por eso el devcontainer arranca con `--security-opt seccomp=unconfined`: se quita el filtro de llamadas al sistema del contenedor exterior para que funcione el sandbox por comando (red limitada y secretos ocultos), que es el control que más importa aquí. El contenedor sigue sin `--privileged` y sin capacidades extra.
+
+Comprobación en la terminal del contenedor:
+
+```bash
+bwrap --ro-bind / / --dev /dev --unshare-user --unshare-net true && echo "sandbox OK"
+```
