@@ -31,8 +31,8 @@ evals/                   # pruebas del harness al cambiar de modelo (tarea C)
 
 ## Arrancar el agente
 
-1. **Clave de la App, una sola vez.** Copia la clave privada de `almagentic-agent` a `~/.config/almagentic/agent.pem` en tu máquina (en Windows, `%USERPROFILE%\.config\almagentic\agent.pem`). Nunca dentro de un repo.
-2. Abre el repo en VS Code y elige **Reopen in Container**. El contenedor monta la clave en solo lectura y trae Python 3.12, uv, GitHub CLI y Claude Code.
+1. **Clave de la App, una sola vez.** Copia la clave privada de `almagentic-agent` a `~/.config/almagentic/agent/agent.pem` en tu máquina. Si el repo está en el disco de Windows (también si lo abres desde `/mnt/c` en WSL), la ruta es `%USERPROFILE%\.config\almagentic\agent\agent.pem`. Nunca dentro de un repo, y sin otras claves en esa carpeta: se monta entera en el contenedor.
+2. Abre el repo en VS Code y elige **Reopen in Container**. El contenedor monta esa carpeta en solo lectura y trae Python 3.12, uv, GitHub CLI y Claude Code.
 3. En el terminal del contenedor:
    ```bash
    .devcontainer/start-agent.sh
