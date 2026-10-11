@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from app.catalogo import RUTA_CATALOGO, Catalogo, cargar_catalogo
+from app.catalogo import RUTA_CATALOGO, Catalogo, cargar_catalogo, normalizar
 
 
 def _productos(cantidad: int = 5) -> list[dict[str, Any]]:
@@ -90,3 +90,32 @@ def test_cargar_catalogo_rechaza_un_fichero_mal_formado(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError):
         cargar_catalogo(ruta)
+
+
+# --- Búsqueda por nombre (spec 002) ---
+
+
+@pytest.mark.parametrize(
+    ("texto", "esperado"),
+    [
+        ("Cerámica", "ceramica"),
+        ("CERÁMICA", "ceramica"),
+        ("Año", "ano"),
+        ("cafe\u0301", "cafe"),  # forma descompuesta
+    ],
+)
+def test_normalizar_ignora_mayusculas_y_acentos(texto: str, esperado: str) -> None:
+    assert normalizar(texto) == esperado
+
+
+def test_buscar_por_nombre_filtra_por_fragmento_y_conserva_el_orden() -> None:
+    catalogo = cargar_catalogo(RUTA_CATALOGO)
+
+    ids = [p.id for p in catalogo.buscar_por_nombre("taza")]
+
+    assert ids == ["taza-ceramica", "cafetera-italiana-6-tazas"]
+
+
+@pytest.mark.parametrize("texto", ["%", "_", "*", ".*", "' OR 1=1 --"])
+def test_buscar_por_nombre_trata_los_comodines_como_texto(texto: str) -> None:
+    assert cargar_catalogo(RUTA_CATALOGO).buscar_por_nombre(texto) == []

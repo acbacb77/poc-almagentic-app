@@ -19,9 +19,37 @@ DURACION = Histogram(
     "Duración de las consultas atendidas por la API",
     ["metodo", "ruta"],
 )
+BUSQUEDAS = Counter(
+    "app_busquedas_total",
+    "Búsquedas de productos por nombre",
+    ["resultado"],
+)
+
+
+def registrar_busqueda(longitud_q: int, resultados: int) -> None:
+    """Deja traza de una búsqueda sin el texto buscado, que lo escribe la persona usuaria."""
+    BUSQUEDAS.labels("con_resultados" if resultados else "sin_resultados").inc()
+    logger.info(
+        json.dumps({"evento": "busqueda", "longitud_q": longitud_q, "resultados": resultados})
+    )
+
+
+class SinQueryString(logging.Filter):
+    """Quita la query string de la ruta en el log de acceso de uvicorn (FR-011)."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        # uvicorn.access registra args = (cliente, método, ruta con query, versión, estado).
+        if isinstance(record.args, tuple) and len(record.args) >= 3:
+            ruta = record.args[2]
+            if isinstance(ruta, str) and "?" in ruta:
+                record.args = (*record.args[:2], ruta.split("?", 1)[0], *record.args[3:])
+        return True
 
 
 def configurar_logs() -> None:
+    acceso = logging.getLogger("uvicorn.access")
+    if not any(isinstance(f, SinQueryString) for f in acceso.filters):
+        acceso.addFilter(SinQueryString())
     raiz = logging.getLogger("app")
     if not raiz.handlers:
         salida = logging.StreamHandler(sys.stdout)
