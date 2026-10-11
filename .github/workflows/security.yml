@@ -1,0 +1,21 @@
+# Escaneo de seguridad de cada PR (tarea 7). Herramientas, versiones y reglas las fija
+# poc-almagentic-core; aquí solo se decide cuándo llamarlo.
+# El check que aparece en el PR es "security / result" y es obligatorio para fusionar en main.
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  security:
+    permissions:
+      contents: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-security.yml@v1
