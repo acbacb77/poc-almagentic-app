@@ -127,8 +127,8 @@ def test_tras_desplegar_un_cambio_de_precio_se_devuelve_el_precio_nuevo(tmp_path
     assert despues.get(f"/api/v1/productos/{id_producto}").json()["precio"] == "99.99"
 
 
-def test_las_respuestas_no_piden_al_cliente_que_las_cachee(cliente: TestClient) -> None:
+def test_las_respuestas_declaran_no_store_y_sin_etag(cliente: TestClient) -> None:
     respuesta = cliente.get("/api/v1/productos")
 
-    assert "cache-control" not in respuesta.headers
+    assert respuesta.headers.get("cache-control") == "no-store"
     assert "etag" not in respuesta.headers
