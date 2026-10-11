@@ -1,0 +1,10 @@
+{
+  "productos": [
+    {"id": "cafe-molido-250g", "nombre": "Café molido 250 g", "precio": "4.95"},
+    {"id": "te-verde-20-bolsitas", "nombre": "Té verde, 20 bolsitas", "precio": "3.20"},
+    {"id": "taza-ceramica", "nombre": "Taza de cerámica", "precio": "9.50"},
+    {"id": "cafetera-italiana-6-tazas", "nombre": "Cafetera italiana de 6 tazas", "precio": "24.90"},
+    {"id": "molinillo-manual", "nombre": "Molinillo manual", "precio": "32.00"},
+    {"id": "filtros-papel-100", "nombre": "Filtros de papel, 100 unidades", "precio": "2.75"}
+  ]
+}
