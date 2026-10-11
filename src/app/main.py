@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from app.api.v1 import productos
 from app.catalogo import RUTA_CATALOGO, cargar_catalogo
 
 
@@ -18,6 +19,8 @@ def create_app(ruta_catalogo: Path = RUTA_CATALOGO) -> FastAPI:
     @app.get("/health")
     def health() -> EstadoSalud:
         return EstadoSalud(status="ok")
+
+    app.include_router(productos.router, prefix="/api/v1")
 
     return app
 
