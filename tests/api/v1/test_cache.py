@@ -19,7 +19,9 @@ def cliente() -> TestClient:
         ("/api/v1/productos/no-existe", 404),
     ],
 )
-def test_las_respuestas_del_catalogo_no_se_cachean(cliente: TestClient, ruta: str, estado: int) -> None:
+def test_las_respuestas_del_catalogo_no_se_cachean(
+    cliente: TestClient, ruta: str, estado: int
+) -> None:
     respuesta = cliente.get(ruta)
 
     assert respuesta.status_code == estado
