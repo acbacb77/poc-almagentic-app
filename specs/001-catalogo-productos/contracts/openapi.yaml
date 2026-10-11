@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: poc-almagentic-app · Catálogo de productos
+  version: "1"
+  description: Contrato de las consultas del catálogo (issue #5). Públicas, sin autenticación.
+paths:
+  /api/v1/productos:
+    get:
+      summary: Listar el catálogo completo
+      description: Devuelve todos los productos, sin paginación ni filtros, en el orden del catálogo.
+      responses:
+        "200":
+          description: Catálogo completo
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 5
+                maxItems: 10
+                items:
+                  $ref: "#/components/schemas/Producto"
+  /api/v1/productos/{id}:
+    get:
+      summary: Consultar un producto por su identificador
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador opaco. Cualquier valor que no coincida con un producto recibe 404.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Producto"
+        "404":
+          description: No existe ningún producto con ese identificador
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                detail: Producto no encontrado
+components:
+  schemas:
+    Producto:
+      type: object
+      additionalProperties: false
+      required: [id, nombre, precio]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          examples: [cafe-molido-250g]
+        nombre:
+          type: string
+          minLength: 1
+          examples: [Café molido 250 g]
+        precio:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          description: Importe en euros, IVA incluido, con exactamente 2 decimales.
+          examples: ["4.95"]
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: Mensaje genérico, sin detalles internos.
