@@ -1,0 +1,55 @@
+# Agente autónomo de features (extensión F). La lógica vive en poc-almagentic-core.
+#   - Etiqueta `aprobado` en un issue      → el agente abre el PR de la spec.
+#   - Merge de un PR `spec/<issue>-<slug>` → el agente abre el PR de la implementación.
+# Las dos señales son decisiones humanas; core comprueba además que quien las da
+# tiene permiso de escritura.
+name: agent-feature
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  spec:
+    if: github.event_name == 'issues' && github.event.label.name == 'aprobado'
+    concurrency:
+      group: agent-feature-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-agent-feature.yml@v1
+    with:
+      phase: spec
+      issue-number: ${{ github.event.issue.number }}
+      agent-app-id: "5179760"
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      AGENT_APP_PRIVATE_KEY: ${{ secrets.AGENT_APP_PRIVATE_KEY }}
+
+  implement:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged &&
+      startsWith(github.event.pull_request.head.ref, 'spec/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    concurrency:
+      group: agent-feature-${{ github.event.pull_request.head.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-agent-feature.yml@v1
+    with:
+      phase: implement
+      spec-branch: ${{ github.event.pull_request.head.ref }}
+      agent-app-id: "5179760"
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      AGENT_APP_PRIVATE_KEY: ${{ secrets.AGENT_APP_PRIVATE_KEY }}
