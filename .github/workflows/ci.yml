@@ -1,0 +1,20 @@
+# CI de cada PR (tarea 6). La lógica vive en poc-almagentic-core; aquí solo se decide cuándo llamarla.
+# El check que aparece en el PR es "ci / checks" y es obligatorio para fusionar en main.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    permissions:
+      contents: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-ci.yml@v1
