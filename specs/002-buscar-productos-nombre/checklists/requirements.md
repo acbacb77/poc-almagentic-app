@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Quedan 2 marcadores [NEEDS CLARIFICATION] (FR-008 `q` vacío, FR-009 longitud máxima), ambos con un valor por defecto en Assumptions. Los resuelve el responsable en el PR.
+- Resueltas las dudas de FR-008 (`q` vacío equivale a no enviarlo) y FR-009 (máximo 100 caracteres tras quitar espacios, 422 genérico).
 - La ruta y el parámetro (`/api/v1/productos?q=`) vienen dados por el issue y por la convención de versionado, no son una decisión de implementación.
