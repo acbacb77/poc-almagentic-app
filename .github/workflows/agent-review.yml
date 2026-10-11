@@ -1,0 +1,28 @@
+# Agente revisor (tarea 8): revisa cada PR contra su spec y deja un comentario.
+# La lógica vive en poc-almagentic-core; aquí solo se decide cuándo llamarla.
+name: agent-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: agent-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Solo PRs de este repo (no forks), que no sean borrador, de colaboradores o del agente.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft &&
+      (contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association) ||
+       github.event.pull_request.user.login == 'almagentic-agent[bot]')
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-agent-review.yml@v1
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

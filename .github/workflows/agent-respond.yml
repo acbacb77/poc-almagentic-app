@@ -1,0 +1,30 @@
+# Respuesta a "@claude" en un PR (tarea 8). Solo la pueden pedir personas con permiso de
+# escritura. Este fichero se lee siempre desde main: un PR no puede cambiar quién lo dispara.
+name: agent-respond
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: agent-respond-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  respond:
+    if: >-
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@claude') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-agent-respond.yml@v1
+    with:
+      pr-number: ${{ github.event.issue.number }}
+      agent-app-id: "5179760"
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      AGENT_APP_PRIVATE_KEY: ${{ secrets.AGENT_APP_PRIVATE_KEY }}
