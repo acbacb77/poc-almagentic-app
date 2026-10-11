@@ -116,3 +116,44 @@ def test_health_y_metrics_no_generan_logs_de_consulta(
         cliente.get("/metrics")
 
     assert _logs(caplog) == []
+
+
+# --- Búsqueda por nombre (spec 002, FR-011) ---
+
+
+def _busquedas(resultado: str) -> float:
+    return REGISTRY.get_sample_value("app_busquedas_total", {"resultado": resultado}) or 0.0
+
+
+def test_la_busqueda_registra_longitud_y_resultados_sin_el_texto(
+    cliente: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.INFO, logger="app.consultas"):
+        cliente.get("/api/v1/productos", params={"q": "  taza  "})
+
+    eventos = [log for log in _logs(caplog) if log["evento"] == "busqueda"]
+    assert eventos == [{"evento": "busqueda", "longitud_q": 4, "resultados": 2}]
+    assert "taza" not in caplog.text.lower()
+
+
+def test_la_busqueda_incrementa_su_metrica_segun_haya_resultados(cliente: TestClient) -> None:
+    con, sin = _busquedas("con_resultados"), _busquedas("sin_resultados")
+
+    cliente.get("/api/v1/productos", params={"q": "taza"})
+    cliente.get("/api/v1/productos", params={"q": "inexistente"})
+
+    assert _busquedas("con_resultados") == con + 1
+    assert _busquedas("sin_resultados") == sin + 1
+
+
+def test_sin_q_o_con_q_vacio_no_hay_evento_de_busqueda(
+    cliente: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    antes = _busquedas("con_resultados") + _busquedas("sin_resultados")
+
+    with caplog.at_level(logging.INFO, logger="app.consultas"):
+        cliente.get("/api/v1/productos")
+        cliente.get("/api/v1/productos", params={"q": "  "})
+
+    assert [log for log in _logs(caplog) if log["evento"] == "busqueda"] == []
+    assert _busquedas("con_resultados") + _busquedas("sin_resultados") == antes

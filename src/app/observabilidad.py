@@ -19,6 +19,19 @@ DURACION = Histogram(
     "Duración de las consultas atendidas por la API",
     ["metodo", "ruta"],
 )
+BUSQUEDAS = Counter(
+    "app_busquedas_total",
+    "Búsquedas de productos por nombre",
+    ["resultado"],
+)
+
+
+def registrar_busqueda(longitud_q: int, resultados: int) -> None:
+    """Deja traza de una búsqueda sin el texto buscado, que lo escribe la persona usuaria."""
+    BUSQUEDAS.labels("con_resultados" if resultados else "sin_resultados").inc()
+    logger.info(
+        json.dumps({"evento": "busqueda", "longitud_q": longitud_q, "resultados": resultados})
+    )
 
 
 def configurar_logs() -> None:

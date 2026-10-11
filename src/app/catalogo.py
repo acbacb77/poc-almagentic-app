@@ -1,9 +1,16 @@
+import unicodedata
 from decimal import Decimal
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 RUTA_CATALOGO = Path(__file__).parent / "catalogo.json"
+
+
+def normalizar(texto: str) -> str:
+    """Minúsculas y sin acentos, para comparar textos de búsqueda."""
+    descompuesto = unicodedata.normalize("NFD", texto)
+    return "".join(c for c in descompuesto if not unicodedata.combining(c)).casefold()
 
 
 class Producto(BaseModel):
@@ -35,6 +42,11 @@ class Catalogo(BaseModel):
 
     def buscar(self, id_producto: str) -> Producto | None:
         return next((p for p in self.productos if p.id == id_producto), None)
+
+    def buscar_por_nombre(self, texto: str) -> list[Producto]:
+        """Productos cuyo nombre contiene `texto` (literal), en el orden del catálogo."""
+        buscado = normalizar(texto)
+        return [p for p in self.productos if buscado in normalizar(p.nombre)]
 
 
 def cargar_catalogo(ruta: Path = RUTA_CATALOGO) -> Catalogo:
