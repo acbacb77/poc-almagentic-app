@@ -1,10 +1,12 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 
 from app.api.v1 import productos
 from app.catalogo import RUTA_CATALOGO, cargar_catalogo
+from app.observabilidad import configurar_logs, registrar_consulta
 
 
 class EstadoSalud(BaseModel):
@@ -12,15 +14,21 @@ class EstadoSalud(BaseModel):
 
 
 def create_app(ruta_catalogo: Path = RUTA_CATALOGO) -> FastAPI:
+    configurar_logs()
     app = FastAPI(title="poc-almagentic-app")
     # Un catálogo mal formado impide arrancar: nunca llega a servirse (FR-010).
     app.state.catalogo = cargar_catalogo(ruta_catalogo)
+    app.middleware("http")(registrar_consulta)
 
     @app.get("/health")
     def health() -> EstadoSalud:
         return EstadoSalud(status="ok")
 
-    app.include_router(productos.router, prefix="/api/v1")
+    @app.get("/metrics", include_in_schema=False)
+    def metrics() -> Response:
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    app.include_router(productos.router)
 
     return app
 

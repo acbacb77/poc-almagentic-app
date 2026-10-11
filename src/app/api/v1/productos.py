@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.catalogo import Catalogo, Producto
 
-router = APIRouter(prefix="/productos", tags=["productos"])
+router = APIRouter(prefix="/api/v1/productos", tags=["productos"])
 
 
 def _catalogo(request: Request) -> Catalogo:
