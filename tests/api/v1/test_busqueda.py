@@ -94,6 +94,10 @@ def test_q_vacio_o_con_espacios_equivale_a_no_enviarlo(cliente: TestClient, q: s
     assert _buscar(cliente, q) == CATALOGO
 
 
+def test_q_con_mas_de_100_espacios_devuelve_el_catalogo_completo(cliente: TestClient) -> None:
+    assert _buscar(cliente, " " * 150) == CATALOGO
+
+
 def test_los_espacios_alrededor_de_q_se_ignoran(cliente: TestClient) -> None:
     assert _buscar(cliente, "  taza  ") == CON_TAZA
 

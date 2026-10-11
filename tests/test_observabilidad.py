@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
 
 from app.main import create_app
+from app.observabilidad import SinQueryString
 
 RUTA_LISTADO = "/api/v1/productos"
 RUTA_PRODUCTO = "/api/v1/productos/{id}"
@@ -157,3 +158,32 @@ def test_sin_q_o_con_q_vacio_no_hay_evento_de_busqueda(
 
     assert [log for log in _logs(caplog) if log["evento"] == "busqueda"] == []
     assert _busquedas("con_resultados") + _busquedas("sin_resultados") == antes
+
+
+def test_el_log_de_acceso_de_uvicorn_no_incluye_la_query_string(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    create_app()
+    acceso = logging.getLogger("uvicorn.access")
+    with caplog.at_level(logging.INFO, logger="uvicorn.access"):
+        acceso.info(
+            '%s - "%s %s HTTP/%s" %d',
+            "127.0.0.1:1234",
+            "GET",
+            "/api/v1/productos?q=secreto",
+            "1.1",
+            200,
+        )
+        acceso.info('%s - "%s %s HTTP/%s" %d', "127.0.0.1:1234", "GET", "/health", "1.1", 200)
+
+    mensajes = [r.getMessage() for r in caplog.records if r.name == "uvicorn.access"]
+    assert 'GET /api/v1/productos HTTP/1.1" 200' in mensajes[0]
+    assert "secreto" not in mensajes[0] and "?" not in mensajes[0]
+    assert 'GET /health HTTP/1.1" 200' in mensajes[1]
+
+
+def test_configurar_logs_no_duplica_el_filtro_de_acceso() -> None:
+    create_app()
+    create_app()
+    filtros = logging.getLogger("uvicorn.access").filters
+    assert sum(isinstance(f, SinQueryString) for f in filtros) == 1
