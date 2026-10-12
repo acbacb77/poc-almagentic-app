@@ -89,3 +89,13 @@ Comprobación en la terminal del contenedor:
 ```bash
 bwrap --ro-bind / / --dev /dev --unshare-user --unshare-net true && echo "sandbox OK"
 ```
+
+## Imagen de contenedor
+
+Cada merge a `main` publica la imagen en GHCR, firmada y con su procedencia y su SBOM (tarea 9, `supply-chain.yml`). Para probarla y verificarla desde WSL:
+
+```bash
+docker run --rm -p 8000:8000 ghcr.io/acbacb77/poc-almagentic-app:main
+gh attestation verify oci://ghcr.io/acbacb77/poc-almagentic-app:main --owner acbacb77 \
+  --signer-workflow acbacb77/poc-almagentic-core/.github/workflows/reusable-supply-chain.yml
+```
