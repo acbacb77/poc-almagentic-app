@@ -1,0 +1,7 @@
+# Lista de permitidos: en la imagen solo entra lo necesario para ejecutar la API.
+*
+!pyproject.toml
+!uv.lock
+!src/
+**/__pycache__
+**/*.pyc
