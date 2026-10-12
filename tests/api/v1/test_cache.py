@@ -3,7 +3,10 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.catalogo import cargar_catalogo
 from app.main import create_app
+
+PRIMER_PRODUCTO = cargar_catalogo().productos[0].id
 
 
 @pytest.fixture
@@ -15,7 +18,7 @@ def cliente() -> TestClient:
     ("ruta", "estado"),
     [
         ("/api/v1/productos", 200),
-        ("/api/v1/productos/taza-ceramica", 200),
+        (f"/api/v1/productos/{PRIMER_PRODUCTO}", 200),
         ("/api/v1/productos/no-existe", 404),
     ],
 )
