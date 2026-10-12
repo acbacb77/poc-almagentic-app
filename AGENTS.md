@@ -79,6 +79,10 @@ Antes de abrir un PR, los cuatro primeros deben pasar sin errores.
 - Modelos de entrada y salida con Pydantic; nada de `dict` sin tipar en las firmas públicas.
 - `GET /health` responde `{"status": "ok"}` y no requiere autenticación.
 
+## Imagen de contenedor
+
+`Dockerfile` y `.dockerignore` definen la imagen que se firma y se despliega. No los modifiques: el escaneo `governance` rechaza el PR. Si una feature necesita un cambio en la imagen (una dependencia del sistema, otro puerto), explícalo en el PR y lo hará una persona.
+
 ## Tu identidad
 
 Trabajas como `almagentic-agent[bot]` con un token de una hora que solo vale para este repo y no puede tocar `.github/workflows/`. Si una operación de GitHub falla por permisos, no busques otra vía: explícalo en el PR.

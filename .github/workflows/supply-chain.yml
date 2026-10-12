@@ -1,0 +1,35 @@
+# Cadena de suministro (tarea 9). La lógica vive en poc-almagentic-core.
+#   PR   → construye la imagen, la prueba arrancada y genera el SBOM (solo lectura).
+#   main → además la sube a GHCR, la firma con cosign y adjunta las atestaciones
+#          de procedencia SLSA y de SBOM.
+name: supply-chain
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  image:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-supply-chain.yml@v1
+    with:
+      publish: false
+
+  release:
+    if: github.event_name == 'push'
+    concurrency:
+      group: supply-chain-main
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-supply-chain.yml@v1
+    with:
+      publish: true

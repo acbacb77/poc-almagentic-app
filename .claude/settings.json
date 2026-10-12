@@ -52,6 +52,8 @@
       "Edit(/AGENTS.md)",
       "Edit(/CLAUDE.md)",
       "Edit(/.agent-standards-version)",
+      "Edit(/Dockerfile)",
+      "Edit(/.dockerignore)",
       "Bash(git push --force *)",
       "Bash(git push -f *)",
       "Bash(git push origin main *)",
