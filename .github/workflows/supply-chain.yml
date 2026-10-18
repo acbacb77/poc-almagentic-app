@@ -33,3 +33,17 @@ jobs:
     uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-supply-chain.yml@v1
     with:
       publish: true
+
+  # Tarea 10: con la imagen publicada y firmada, el promotor propone el despliegue en gitops.
+  # La clave del promotor está en el entorno gitops-staging, que solo admite la rama main.
+  # No se pasan secretos: el job de core declara ese entorno y lee la clave de ahí.
+  promote:
+    needs: release
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-promote.yml@v1
+    with:
+      image: ghcr.io/acbacb77/poc-almagentic-app
+      digest: ${{ needs.release.outputs.digest }}
+      promoter-app-id: "5179780"
