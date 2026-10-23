@@ -99,3 +99,7 @@ docker run --rm -p 8000:8000 ghcr.io/acbacb77/poc-almagentic-app:main
 gh attestation verify oci://ghcr.io/acbacb77/poc-almagentic-app:main --owner acbacb77 \
   --signer-workflow acbacb77/poc-almagentic-core/.github/workflows/reusable-supply-chain.yml
 ```
+
+## Versiones
+
+Las versiones (`vX.Y.Z`) las publica una persona cuando quiere: *Actions → release → Run workflow* sobre `main`. El número sale de los títulos de los PRs (Conventional Commits): `feat` sube la versión menor, `fix`, `ci`, `build`… la de parche, y `!` o `BREAKING CHANGE` la mayor. La imagen de la versión es la misma que `main` ya publicó y firmó para ese commit, solo con otra etiqueta. Las notas marcan con 🤖 los cambios en los que intervino el agente.
