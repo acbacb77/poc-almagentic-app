@@ -115,6 +115,15 @@ def test_la_api_publica_no_expone_metrics(cliente: TestClient) -> None:
     assert cliente.get("/metrics").status_code == 404
 
 
+@pytest.mark.parametrize("valor", ["abc", "0", "70000", "-1"])
+def test_metrics_port_no_valido_falla_con_un_mensaje_claro(
+    valor: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("METRICS_PORT", valor)
+    with pytest.raises(ValueError, match="METRICS_PORT"):
+        create_app()
+
+
 def test_health_y_metrics_no_generan_logs_de_consulta(
     cliente: TestClient, caplog: pytest.LogCaptureFixture
 ) -> None:

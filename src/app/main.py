@@ -26,6 +26,8 @@ def create_app(ruta_catalogo: Path = RUTA_CATALOGO) -> FastAPI:
     configurar_logs()
     # Las métricas van en su propio puerto (METRICS_PORT), fuera de la API pública.
     if puerto := os.environ.get("METRICS_PORT"):
+        if not puerto.isdigit() or not 0 < int(puerto) < 65536:
+            raise ValueError(f"METRICS_PORT debe ser un puerto entre 1 y 65535, no {puerto!r}")
         iniciar_metricas(int(puerto))
     app = FastAPI(title="poc-almagentic-app")
     # Un catálogo mal formado impide arrancar: nunca llega a servirse (FR-010).
