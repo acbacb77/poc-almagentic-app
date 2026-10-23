@@ -1,13 +1,13 @@
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 from starlette.middleware.base import RequestResponseEndpoint
 
 from app.api.v1 import productos
 from app.catalogo import RUTA_CATALOGO, cargar_catalogo
-from app.observabilidad import configurar_logs, registrar_consulta
+from app.observabilidad import configurar_logs, iniciar_metricas, registrar_consulta
 
 
 async def sin_cache(request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -24,6 +24,11 @@ class EstadoSalud(BaseModel):
 
 def create_app(ruta_catalogo: Path = RUTA_CATALOGO) -> FastAPI:
     configurar_logs()
+    # Las métricas van en su propio puerto (METRICS_PORT), fuera de la API pública.
+    if puerto := os.environ.get("METRICS_PORT"):
+        if not puerto.isdigit() or not 0 < int(puerto) < 65536:
+            raise ValueError(f"METRICS_PORT debe ser un puerto entre 1 y 65535, no {puerto!r}")
+        iniciar_metricas(int(puerto))
     app = FastAPI(title="poc-almagentic-app")
     # Un catálogo mal formado impide arrancar: nunca llega a servirse (FR-010).
     app.state.catalogo = cargar_catalogo(ruta_catalogo)
@@ -33,10 +38,6 @@ def create_app(ruta_catalogo: Path = RUTA_CATALOGO) -> FastAPI:
     @app.get("/health")
     def health() -> EstadoSalud:
         return EstadoSalud(status="ok")
-
-    @app.get("/metrics", include_in_schema=False)
-    def metrics() -> Response:
-        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     app.include_router(productos.router)
 

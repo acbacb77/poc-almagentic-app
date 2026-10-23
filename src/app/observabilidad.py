@@ -2,9 +2,10 @@ import json
 import logging
 import sys
 import time
+from wsgiref.simple_server import WSGIServer
 
 from fastapi import Request, Response
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, start_http_server
 from starlette.middleware.base import RequestResponseEndpoint
 
 logger = logging.getLogger("app.consultas")
@@ -32,6 +33,23 @@ def registrar_busqueda(longitud_q: int, resultados: int) -> None:
     logger.info(
         json.dumps({"evento": "busqueda", "longitud_q": longitud_q, "resultados": resultados})
     )
+
+
+_servidor_metricas: WSGIServer | None = None
+
+
+def iniciar_metricas(puerto: int) -> int:
+    """Sirve /metrics en un puerto propio (tarea 11).
+
+    El Service público solo publica el puerto de la API, así que las métricas solo se
+    leen desde dentro del clúster. Se arranca una vez por proceso: las llamadas siguientes
+    devuelven el puerto ya abierto. La imagen arranca uvicorn con un solo worker; con varios
+    habría que usar el modo multiproceso de prometheus_client.
+    """
+    global _servidor_metricas
+    if _servidor_metricas is None:
+        _servidor_metricas, _ = start_http_server(puerto)
+    return int(_servidor_metricas.server_port)
 
 
 class SinQueryString(logging.Filter):

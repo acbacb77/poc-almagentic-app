@@ -1,13 +1,14 @@
 import json
 import logging
 from typing import Any
+from urllib.request import urlopen
 
 import pytest
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
 
 from app.main import create_app
-from app.observabilidad import SinQueryString
+from app.observabilidad import SinQueryString, iniciar_metricas
 
 RUTA_LISTADO = "/api/v1/productos"
 RUTA_PRODUCTO = "/api/v1/productos/{id}"
@@ -94,19 +95,33 @@ def test_cada_consulta_incrementa_su_metrica(
     )
 
 
-def test_metrics_expone_las_consultas_sin_identificadores(cliente: TestClient) -> None:
+def test_metrics_va_en_un_puerto_propio_sin_identificadores(cliente: TestClient) -> None:
     cliente.get("/api/v1/productos")
     cliente.get("/api/v1/productos/identificador-arbitrario")
 
-    respuesta = cliente.get("/metrics")
+    puerto = iniciar_metricas(0)
+    with urlopen(f"http://127.0.0.1:{puerto}/metrics", timeout=5) as respuesta:  # noqa: S310
+        texto = respuesta.read().decode()
+        tipo = respuesta.headers["content-type"]
 
-    assert respuesta.status_code == 200
-    assert respuesta.headers["content-type"].startswith("text/plain")
-    assert 'app_consultas_total{estado="200",metodo="GET",ruta="/api/v1/productos"}' in (
-        respuesta.text
-    )
-    assert 'ruta="/api/v1/productos/{id}"' in respuesta.text
-    assert "identificador-arbitrario" not in respuesta.text
+    assert tipo.startswith("text/plain")
+    assert 'app_consultas_total{estado="200",metodo="GET",ruta="/api/v1/productos"}' in texto
+    assert 'ruta="/api/v1/productos/{id}"' in texto
+    assert "identificador-arbitrario" not in texto
+    assert iniciar_metricas(0) == puerto  # una sola vez por proceso
+
+
+def test_la_api_publica_no_expone_metrics(cliente: TestClient) -> None:
+    assert cliente.get("/metrics").status_code == 404
+
+
+@pytest.mark.parametrize("valor", ["abc", "0", "70000", "-1"])
+def test_metrics_port_no_valido_falla_con_un_mensaje_claro(
+    valor: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("METRICS_PORT", valor)
+    with pytest.raises(ValueError, match="METRICS_PORT"):
+        create_app()
 
 
 def test_health_y_metrics_no_generan_logs_de_consulta(
