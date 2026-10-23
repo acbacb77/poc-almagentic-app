@@ -1,0 +1,21 @@
+# Versiones de la API (tarea B). Las lanza una persona: Actions → release → Run workflow (main).
+# La lógica vive en poc-almagentic-core: calcula vX.Y.Z con Conventional Commits, verifica la
+# imagen que main ya publicó para este commit, le añade la etiqueta de la versión sin
+# reconstruirla y publica la Release con las notas.
+name: release
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      packages: write
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-release.yml@v1
