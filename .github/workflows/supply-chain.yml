@@ -39,7 +39,8 @@ jobs:
 
   # Tarea 10: con la imagen publicada y firmada, el promotor propone el despliegue en gitops.
   # La clave del promotor está en el entorno gitops-staging, que solo admite la rama main.
-  # No se pasan secretos: el job de core declara ese entorno y lee la clave de ahí.
+  # Se pasa solo esa clave: un workflow reutilizable de otro repo no ve los secretos del
+  # entorno si el que llama no se los pasa.
   promote:
     needs: release
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -50,3 +51,5 @@ jobs:
       image: ghcr.io/acbacb77/poc-almagentic-app
       digest: ${{ needs.release.outputs.digest }}
       promoter-app-id: "5179780"
+    secrets:
+      PROMOTER_APP_PRIVATE_KEY: ${{ secrets.PROMOTER_APP_PRIVATE_KEY }}
