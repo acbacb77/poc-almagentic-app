@@ -2,10 +2,10 @@ import json
 import logging
 import sys
 import time
+from wsgiref.simple_server import WSGIServer
 
 from fastapi import Request, Response
 from prometheus_client import Counter, Histogram, start_http_server
-from prometheus_client.exposition import ThreadingWSGIServer
 from starlette.middleware.base import RequestResponseEndpoint
 
 logger = logging.getLogger("app.consultas")
@@ -35,7 +35,7 @@ def registrar_busqueda(longitud_q: int, resultados: int) -> None:
     )
 
 
-_servidor_metricas: ThreadingWSGIServer | None = None
+_servidor_metricas: WSGIServer | None = None
 
 
 def iniciar_metricas(puerto: int) -> int:
