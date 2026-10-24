@@ -7,7 +7,7 @@ from app.observabilidad import registrar_busqueda
 
 router = APIRouter(prefix="/api/v1/productos", tags=["productos"])
 
-LONGITUD_MAXIMA_Q = 100
+LONGITUD_MAXIMA_Q = 200
 
 
 def _catalogo(request: Request) -> Catalogo:

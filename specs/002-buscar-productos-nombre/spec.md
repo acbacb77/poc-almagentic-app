@@ -81,7 +81,7 @@ Si ningún producto coincide, la tienda recibe una respuesta correcta con una li
 - **FR-006**: Cada producto devuelto DEBE tener la misma forma y los mismos valores que en el listado completo, y los resultados DEBEN conservar el orden del listado completo.
 - **FR-007**: El texto de `q` DEBE tratarse siempre como texto literal: ningún carácter de `q` actúa como comodín ni como instrucción.
 - **FR-008**: Un `q` vacío o formado solo por espacios DEBE tratarse como ausente.
-- **FR-009**: El texto de `q` DEBE tener un máximo de 100 caracteres después de quitar los espacios del principio y del final; un valor más largo se rechaza con un error de validación del cliente (422), sin detalles internos.
+- **FR-009**: El texto de `q` DEBE tener un máximo de 200 caracteres después de quitar los espacios del principio y del final; un valor más largo se rechaza con un error de validación del cliente (422), sin detalles internos.
 - **FR-010**: El parámetro `q` es opcional y se añade a la versión publicada `/api/v1`; no DEBE cambiar de forma incompatible ninguna respuesta existente (anexo de la constitución).
 - **FR-011**: La búsqueda DEBE dejar métricas y logs estructurados de su uso, sin datos personales; en particular, solo se registran la longitud de `q` y el número de resultados; el texto de `q` NO DEBE registrarse nunca, ni tal cual ni transformado, porque lo escribe la persona usuaria final (anexo de la constitución).
 - **FR-012**: Los errores de validación de `q` DEBEN devolver un mensaje genérico, sin detalles internos (constitución, principio I).
@@ -108,7 +108,7 @@ Si ningún producto coincide, la tienda recibe una respuesta correcta con una li
 - **Espacios**: se ignoran los espacios al principio y al final del texto buscado; los espacios interiores se mantienen como parte del texto.
 - **`q` vacío**: por compatibilidad con v1 y por ser lo menos sorprendente para la tienda, se asume que `q` vacío o solo con espacios equivale a no enviarlo. Confirmado por el responsable (FR-008).
 - **`q` repetido**: se usa un único valor de `q` y los demás se ignoran, sin error.
-- **Longitud máxima**: se fija en 100 caracteres tras quitar espacios, más que suficiente para un nombre de producto. Confirmado por el responsable (FR-009).
+- **Longitud máxima**: se fija en 200 caracteres tras quitar espacios (ampliado desde 100 por la spec 003, issue #29). Confirmado por el responsable (FR-009).
 - **Combinación con paginación y filtros**: hoy el listado no tiene paginación ni otros filtros (spec 001, FR-008), así que no hay nada con lo que combinarla. Si se añaden más adelante, deberán combinarse con `q` en su propia spec.
 - **Relación con la spec 001**: la spec `001-catalogo-productos` (FR-008) dice que el listado se devuelve «sin paginación ni filtros». Esta feature lo modifica de forma compatible: sin `q` el listado sigue siendo el catálogo completo. Solo `q` deja de estar fuera de alcance; paginación y otros filtros siguen fuera.
 - **Sin autenticación**: igual que el listado actual, la búsqueda es pública.
