@@ -1,4 +1,4 @@
-"""Spec 003: el log de búsqueda registra solo la longitud de q, también con las longitudes nuevas."""
+"""Spec 003: el log de búsqueda registra solo la longitud de q, también con longitudes nuevas."""
 
 import json
 import logging
