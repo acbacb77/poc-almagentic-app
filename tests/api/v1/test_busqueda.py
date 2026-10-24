@@ -94,8 +94,8 @@ def test_q_vacio_o_con_espacios_equivale_a_no_enviarlo(cliente: TestClient, q: s
     assert _buscar(cliente, q) == CATALOGO
 
 
-def test_q_con_mas_de_100_espacios_devuelve_el_catalogo_completo(cliente: TestClient) -> None:
-    assert _buscar(cliente, " " * 150) == CATALOGO
+def test_q_con_mas_de_200_espacios_devuelve_el_catalogo_completo(cliente: TestClient) -> None:
+    assert _buscar(cliente, " " * 250) == CATALOGO
 
 
 def test_los_espacios_alrededor_de_q_se_ignoran(cliente: TestClient) -> None:
@@ -114,19 +114,45 @@ def test_con_q_repetido_no_hay_error_y_se_usa_un_solo_valor(cliente: TestClient)
     assert respuesta.json() in (CON_TAZA, MOLINILLO)
 
 
-def test_q_de_100_caracteres_es_valido_y_los_espacios_no_cuentan(cliente: TestClient) -> None:
+def test_q_de_100_caracteres_o_menos_sigue_igual(cliente: TestClient) -> None:
     assert _buscar(cliente, "a" * 100) == []
     assert _buscar(cliente, f"  {'a' * 100}  ") == []
 
 
-def test_q_de_mas_de_100_caracteres_se_rechaza_con_un_422_generico(
+# --- Spec 003: límite de 200 caracteres ---
+
+
+@pytest.mark.parametrize("longitud", [101, 120, 200])
+def test_q_de_101_a_200_caracteres_es_valido(cliente: TestClient, longitud: int) -> None:
+    assert _buscar(cliente, "a" * longitud) == []
+
+
+def test_q_de_200_caracteres_cuenta_tras_quitar_espacios_de_los_extremos(
     cliente: TestClient,
 ) -> None:
-    respuesta = cliente.get(RUTA, params={"q": "secreto-" + "a" * 100})
+    assert _buscar(cliente, f"  {'a' * 200}  ") == []
+    assert _buscar(cliente, f" {'a' * 199} ") == []
+
+
+def test_q_de_mas_de_200_caracteres_se_rechaza_con_un_422_generico(
+    cliente: TestClient,
+) -> None:
+    respuesta = cliente.get(RUTA, params={"q": "secreto-" + "a" * 193})
 
     assert respuesta.status_code == 422
     assert respuesta.json() == {"detail": "Parámetro q no válido"}
     assert "secreto" not in respuesta.text
+
+
+def test_q_de_201_caracteres_con_espacios_en_los_extremos_se_rechaza(
+    cliente: TestClient,
+) -> None:
+    assert cliente.get(RUTA, params={"q": f" {'a' * 201} "}).status_code == 422
+
+
+def test_q_se_cuenta_en_caracteres_no_en_bytes(cliente: TestClient) -> None:
+    assert _buscar(cliente, "ñ" * 200) == []
+    assert cliente.get(RUTA, params={"q": "ñ" * 201}).status_code == 422
 
 
 def test_la_consulta_por_identificador_no_cambia(cliente: TestClient) -> None:
@@ -138,4 +164,4 @@ def test_la_consulta_por_identificador_no_cambia(cliente: TestClient) -> None:
 
 def test_las_respuestas_de_busqueda_no_se_cachean(cliente: TestClient) -> None:
     assert cliente.get(RUTA, params={"q": "taza"}).headers["cache-control"] == "no-store"
-    assert cliente.get(RUTA, params={"q": "x" * 101}).headers["cache-control"] == "no-store"
+    assert cliente.get(RUTA, params={"q": "x" * 201}).headers["cache-control"] == "no-store"
