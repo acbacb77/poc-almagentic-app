@@ -1,0 +1,54 @@
+# Mantenimiento de dependencias (tarea C). Dependabot propone; una persona revisa y fusiona.
+# Los PRs pasan los mismos checks obligatorios que cualquier otro (ci / checks y security / result).
+# El revisor automático no corre en ellos: GitHub no da a Dependabot los secretos de Actions.
+# Si un PR rompe el CI, se pide el arreglo con un comentario @claude en el propio PR.
+#
+# Títulos con el prefijo `deps` para que release.py los cuente como parche (extensión B).
+version: 2
+updates:
+  # Paquetes de Python (uv.lock). Las versiones menores y de parche van juntas en un PR;
+  # cada salto mayor va en su propio PR, porque es el que puede romper algo.
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    groups:
+      python:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Imágenes base del Dockerfile: Dependabot actualiza también el digest fijado.
+  # Python se queda en 3.12: un salto de versión del intérprete se decide aparte.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Madrid
+    commit-message:
+      prefix: deps
+    ignore:
+      - dependency-name: python
+        update-types: [version-update:semver-major, version-update:semver-minor]
+    groups:
+      imagenes-base:
+        patterns: ["*"]
+
+  # Las llamadas a los workflows de core van por @v1 y se mueven solas; aquí solo entra
+  # alguna acción que app use directamente.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Madrid
+    commit-message:
+      prefix: deps
