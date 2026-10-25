@@ -26,7 +26,11 @@ METODOS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
 def _enlace_v2(request: Request) -> str:
     # Mismo path con v1 → v2; lo recibido se codifica para no inyectar cabeceras ni destinos.
-    destino = "/api/v2/" + quote(request.path_params["ruta"], safe="/")
+    # `/api/v1` sin barra no tiene parámetro de ruta: su destino es `/api/v2` (spec 006, FR-008).
+    if "ruta" in request.path_params:
+        destino = "/api/v2/" + quote(request.path_params["ruta"], safe="/")
+    else:
+        destino = "/api/v2"
     if "q" in request.query_params:
         destino += "?q=" + quote(request.query_params["q"], safe="")
     return f'<{destino}>; rel="successor-version"'
@@ -35,6 +39,9 @@ def _enlace_v2(request: Request) -> str:
 # Una sola ruta comodín: así v1 no valida nada (ni 404, ni 405, ni 422) y la plantilla
 # registrada en las métricas es siempre la misma (cardinalidad acotada).
 # No se publica en OpenAPI (FR-016).
+# La ruta "" cubre `/api/v1` sin barra final (spec 006): se resuelve aquí, sin tocar
+# redirect_slashes, que sigue igual para el resto de rutas.
+@router.api_route("", methods=METODOS, include_in_schema=False)
 @router.api_route("/{ruta:resto}", methods=METODOS, include_in_schema=False)
 def retirada(request: Request) -> Response:
     cabeceras = {

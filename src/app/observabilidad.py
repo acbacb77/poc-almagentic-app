@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 import time
+from urllib.parse import unquote
 from wsgiref.simple_server import WSGIServer
 
 from fastapi import Request, Response
@@ -64,10 +65,33 @@ class SinQueryString(logging.Filter):
         return True
 
 
+MARCADOR_V1 = "/api/v1/[retirada]"
+
+
+class SinRutaV1(logging.Filter):
+    """Sustituye en el log de acceso toda ruta de v1 por un marcador fijo (spec 006, FR-001).
+
+    Lo que sigue a /api/v1/ lo escribe el cliente y puede contener datos personales; el
+    marcador deja ver que llegó tráfico a v1 sin guardarlo. Solo afecta al prefijo /api/v1.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple) and len(record.args) >= 3:
+            ruta = record.args[2]
+            if isinstance(ruta, str):
+                # Se decodifica para que `/api/%76%31/...` no escape al marcador.
+                path = unquote(ruta.split("?", 1)[0])
+                if path == "/api/v1" or path.startswith("/api/v1/"):
+                    record.args = (*record.args[:2], MARCADOR_V1, *record.args[3:])
+        return True
+
+
 def configurar_logs() -> None:
     acceso = logging.getLogger("uvicorn.access")
     if not any(isinstance(f, SinQueryString) for f in acceso.filters):
         acceso.addFilter(SinQueryString())
+    if not any(isinstance(f, SinRutaV1) for f in acceso.filters):
+        acceso.addFilter(SinRutaV1())
     raiz = logging.getLogger("app")
     if not raiz.handlers:
         salida = logging.StreamHandler(sys.stdout)
