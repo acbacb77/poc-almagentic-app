@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Retirada**: la API v1 que define esta spec está retirada por la [spec 005](../005-retirar-api-v1/spec.md) (todas las rutas `/api/v1/` responden 410). Se conserva como histórico y como fuente de las reglas que reutiliza v2.
+
 **Issue**: #29
 
 **Input**: User description: "En staging, el 100 % de las búsquedas de los últimos 5 minutos (`GET /api/v1/productos?q=…`) recibió 422 porque `q` supera los 100 caracteres (FR-009 de la spec 002). Decisión del responsable: subir el máximo de `q` de 100 a 200 caracteres, contados tras quitar los espacios del principio y del final; por encima de 200 se sigue devolviendo el 422 genérico; se mantiene FR-011 (en el log solo la longitud, nunca el texto)."

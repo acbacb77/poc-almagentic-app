@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Retirada**: la API v1 que define esta spec está retirada por la [spec 005](../005-retirar-api-v1/spec.md) (todas las rutas `/api/v1/` responden 410). Se conserva como histórico y como fuente de las reglas que reutiliza v2.
+
 **Issue**: #18
 
 **Input**: User description: "Poder buscar productos del catálogo por nombre. Por ejemplo, GET /api/v1/productos?q=taza devolvería solo los productos cuyo nombre contiene «taza»." Completado con los criterios del issue #18 y la propuesta de triage.
