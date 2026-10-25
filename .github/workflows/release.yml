@@ -18,4 +18,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+      # Lectura para el informe de trazabilidad de la Release (tarea E).
+      pull-requests: read
+      issues: read
+      checks: read
     uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-release.yml@v1
