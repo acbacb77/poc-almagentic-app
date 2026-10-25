@@ -3,6 +3,17 @@
 API REST de ejemplo (Python/FastAPI) para la POC de **ALM agéntico**.
 Es el único repo en el que el agente de código (Claude Code) tiene permiso de escritura, siempre a través de PRs revisados por un humano.
 
+## API
+
+| Ruta | Qué devuelve |
+|---|---|
+| `GET /api/v2/productos` | Catálogo completo. Con `?q=texto` (hasta 200 caracteres), los productos cuyo nombre contiene el texto, sin distinguir mayúsculas ni acentos |
+| `GET /api/v2/productos/{id}` | Un producto, o 404 |
+| `GET /health` | `{"status": "ok"}` |
+| `/api/v1/...` | **Retirada** (petición #40, spec 005): cualquier ruta y método responde `410 Gone` con `Link` a su equivalente en v2 y las cabeceras `Deprecation` y `Sunset` |
+
+En v2 el precio es `{"importe": "12.50", "moneda": "EUR"}`: el importe va como texto con 2 decimales y la moneda es un código ISO 4217 común a todo el catálogo (spec 004).
+
 ## Repos de la POC
 
 | Repo | Qué contiene | Quién escribe |
