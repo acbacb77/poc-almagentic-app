@@ -29,8 +29,9 @@ jobs:
     uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-evals.yml@v1
     with:
       modelos: ${{ inputs.modelos }}
-      agente: ${{ inputs.agente == 'ambos' && '' || inputs.agente }}
-      repeticiones: ${{ inputs.repeticiones }}
+      agente: ${{ inputs.agente != 'ambos' && inputs.agente || '' }}
+      # Las entradas de workflow_dispatch llegan como texto; el workflow de core espera un número.
+      repeticiones: ${{ fromJSON(inputs.repeticiones) }}
       min-acierto: "0"
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
