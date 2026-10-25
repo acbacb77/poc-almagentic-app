@@ -102,7 +102,7 @@ Quien opera el servicio abre el panel «Consultas por versión de la API» y ve 
 - **FR-002**: Cada producto de v2 DEBE tener exactamente `id`, `nombre` y `precio`; `id` y `nombre` son los mismos que en v1.
 - **FR-003**: `precio` DEBE ser un objeto con exactamente dos campos: `importe` y `moneda`.
 - **FR-004**: `importe` DEBE ser un texto decimal con punto como separador y exactamente 2 decimales (por ejemplo `"12.50"`, `"3.00"`), sin separador de miles ni símbolo de moneda. Es el valor del catálogo escrito como texto: no hay redondeo ni conversión.
-- **FR-005**: `moneda` DEBE ser un código ISO 4217 de tres letras mayúsculas. Es un dato de cada producto en el catálogo (no un valor fijo del endpoint ni calculado) y hoy es `"EUR"` en todos los productos.
+- **FR-005**: `moneda` DEBE ser un código ISO 4217 de tres letras mayúsculas. Es un atributo del catálogo, común a todos sus productos (no un valor fijo del endpoint ni calculado), y hoy es `"EUR"`. Un catálogo con una moneda ausente o mal formada (`eur`, `EURO`) se rechaza al cargarlo.
 - **FR-006**: El listado v2 DEBE aceptar el parámetro opcional `q` con las mismas reglas que v1: coincidencia por fragmento sin distinguir mayúsculas ni acentos, `q` vacío o de solo espacios equivale a ausente, máximo de 200 caracteres tras quitar espacios de los extremos (specs 002 y 003) y mismo orden de resultados.
 - **FR-007**: v2 DEBE devolver los mismos errores que v1 para los mismos casos: 404 con cuerpo `{"detail": "..."}` genérico para un identificador inexistente de cualquier forma, y 422 con el mismo mensaje genérico para un `q` demasiado largo, sin detalles internos.
 - **FR-008**: Ambas consultas de v2 DEBEN ser públicas (sin autenticación) y NO DEBEN cachear respuestas, igual que v1 (spec 001, FR-006 y FR-009).
@@ -129,7 +129,7 @@ Quien opera el servicio abre el panel «Consultas por versión de la API» y ve 
 ### Key Entities
 
 - **Producto (v2)**: artículo del catálogo con `id`, `nombre` y `precio`. Mismos datos que en v1; cambia la representación del precio.
-- **Precio (v2)**: pareja de `importe` (texto decimal con 2 decimales) y `moneda` (código ISO 4217). La moneda es un atributo del producto en el catálogo.
+- **Precio (v2)**: pareja de `importe` (texto decimal con 2 decimales) y `moneda` (código ISO 4217). La moneda es un atributo del catálogo, común a todos sus productos.
 - **Aviso de obsolescencia**: conjunto de las tres cabeceras (`Deprecation`, `Sunset`, `Link` de sucesión) que acompañan a toda respuesta de v1.
 
 ## Success Criteria *(mandatory)*
