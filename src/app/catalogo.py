@@ -18,7 +18,9 @@ class Producto(BaseModel):
 
     id: str = Field(min_length=1)
     nombre: str = Field(min_length=1)
-    precio: Decimal = Field(ge=0, description="Importe con IVA incluido, con 2 decimales")
+    precio: Decimal = Field(
+        ge=0, description="Importe en euros, IVA incluido, con exactamente 2 decimales."
+    )
 
     @field_validator("precio")
     @classmethod
@@ -31,9 +33,9 @@ class Producto(BaseModel):
 class Catalogo(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    # Moneda del catálogo (ISO 4217); hoy todo está en euros. Los productos no la llevan
-    # porque la spec 001 prohíbe campos desconocidos en ellos.
-    moneda: str = Field(default="EUR", pattern=r"^[A-Z]{3}$")
+    # Moneda del catálogo (ISO 4217), común a todos sus productos. Es un dato, sin valor
+    # por defecto.
+    moneda: str = Field(pattern=r"^[A-Z]{3}$")
     productos: list[Producto] = Field(min_length=5, max_length=10)
 
     @model_validator(mode="after")

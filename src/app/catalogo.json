@@ -1,4 +1,5 @@
 {
+  "moneda": "EUR",
   "productos": [
     {"id": "cafe-molido-250g", "nombre": "Café molido 250 g", "precio": "4.95"},
     {"id": "te-verde-20-bolsitas", "nombre": "Té verde, 20 bolsitas", "precio": "3.20"},

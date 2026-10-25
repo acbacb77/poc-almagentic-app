@@ -96,3 +96,20 @@ def test_las_fechas_no_dependen_de_cuando_se_consulta(cliente: TestClient) -> No
     segunda = cliente.get("/api/v1/productos")
 
     assert primera.headers["deprecation"] == segunda.headers["deprecation"] == DEPRECATION
+
+
+def test_con_q_repetido_listado_y_link_usan_el_ultimo_valor(cliente: TestClient) -> None:
+    respuesta = cliente.get("/api/v1/productos?q=taza&q=molinillo")
+
+    assert [p["id"] for p in respuesta.json()] == ["molinillo-manual"]
+    _comprobar_cabeceras(respuesta, "/api/v2/productos?q=molinillo")
+    sucesor = cliente.get("/api/v2/productos?q=taza&q=molinillo")
+    assert [p["id"] for p in sucesor.json()] == ["molinillo-manual"]
+
+
+def test_esquema_openapi_de_v1_describe_el_precio_en_euros(cliente: TestClient) -> None:
+    esquema = cliente.get("/openapi.json").json()["components"]["schemas"]["ProductoV1"]
+
+    assert esquema["properties"]["precio"]["description"] == (
+        "Importe en euros, IVA incluido, con exactamente 2 decimales."
+    )

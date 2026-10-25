@@ -120,7 +120,7 @@ def test_tras_desplegar_un_cambio_de_precio_se_devuelve_el_precio_nuevo(tmp_path
 
     modificado = [{**CATALOGO[0], "precio": "99.99"}, *CATALOGO[1:]]
     ruta = tmp_path / "catalogo.json"
-    ruta.write_text(json.dumps({"productos": modificado}), encoding="utf-8")
+    ruta.write_text(json.dumps({"moneda": "EUR", "productos": modificado}), encoding="utf-8")
     despues = TestClient(create_app(ruta))
 
     assert despues.get("/api/v1/productos").json()[0]["precio"] == "99.99"

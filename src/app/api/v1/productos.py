@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.catalogo import Catalogo, Producto
 from app.observabilidad import registrar_busqueda
@@ -17,7 +17,9 @@ class ProductoV1(BaseModel):
 
     id: str
     nombre: str
-    precio: Decimal
+    precio: Decimal = Field(
+        description="Importe en euros, IVA incluido, con exactamente 2 decimales."
+    )
 
 
 def a_v1(producto: Producto) -> ProductoV1:

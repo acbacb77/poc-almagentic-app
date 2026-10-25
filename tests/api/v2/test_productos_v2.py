@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -147,3 +148,16 @@ def test_las_metricas_de_detalle_v2_no_llevan_el_id(cliente: TestClient) -> None
         {"metodo": "GET", "ruta": "/api/v2/productos/{id}", "estado": "404"},
     )
     assert despues == antes + 1
+
+
+def test_v2_devuelve_la_moneda_del_catalogo(tmp_path: Path) -> None:
+    ruta = tmp_path / "catalogo.json"
+    productos = [{"id": f"p{n}", "nombre": f"Producto {n}", "precio": "1.00"} for n in range(5)]
+    ruta.write_text(json.dumps({"moneda": "USD", "productos": productos}), encoding="utf-8")
+    cliente = TestClient(create_app(ruta))
+
+    listado = cliente.get("/api/v2/productos").json()
+    detalle = cliente.get("/api/v2/productos/p0").json()
+
+    assert {p["precio"]["moneda"] for p in listado} == {"USD"}
+    assert detalle["precio"] == {"importe": "1.00", "moneda": "USD"}
