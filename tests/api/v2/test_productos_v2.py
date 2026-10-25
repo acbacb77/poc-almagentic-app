@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
 
-from app.catalogo import RUTA_CATALOGO
+from app.catalogo import RUTA_CATALOGO, normalizar
 from app.main import create_app
 
 CATALOGO = json.loads(RUTA_CATALOGO.read_text(encoding="utf-8"))["productos"]
@@ -16,6 +16,15 @@ PRIMERO = CATALOGO[0]
 @pytest.fixture
 def cliente() -> TestClient:
     return TestClient(create_app())
+
+
+def _esperados(q: str) -> list[dict[str, str]]:
+    """Productos del catálogo que cumplen las reglas de búsqueda: q sin espacios, literal,
+    sin distinguir mayúsculas ni acentos, en el orden del catálogo."""
+    texto = q.strip()
+    if not texto:
+        return CATALOGO
+    return [p for p in CATALOGO if normalizar(texto) in normalizar(p["nombre"])]
 
 
 def _v2(producto: dict[str, str]) -> dict[str, object]:
@@ -58,12 +67,11 @@ def test_importe_con_ceros_finales_se_conserva(cliente: TestClient) -> None:
     assert molinillo["precio"]["importe"] == "32.00"
 
 
-def test_v2_coincide_con_v1_salvo_la_forma_del_precio(cliente: TestClient) -> None:
-    v1 = cliente.get("/api/v1/productos").json()
+def test_v2_coincide_con_el_catalogo(cliente: TestClient) -> None:
     v2 = cliente.get("/api/v2/productos").json()
 
-    assert [(p["id"], p["nombre"], p["precio"]) for p in v1] == [
-        (p["id"], p["nombre"], p["precio"]["importe"]) for p in v2
+    assert [(p["id"], p["nombre"], p["precio"]["importe"]) for p in v2] == [
+        (p["id"], p["nombre"], p["precio"]) for p in CATALOGO
     ]
 
 
@@ -75,34 +83,33 @@ def test_v2_es_publica_y_no_se_cachea(cliente: TestClient) -> None:
     assert respuesta.headers["cache-control"] == "no-store"
 
 
-# --- Historia 2: búsqueda y errores iguales a v1 ---
+# --- Historia 2: búsqueda y errores según las reglas del catálogo ---
 
 
 @pytest.mark.parametrize("q", ["cafe", "CAFÉ", "zzz", "", "   ", "a" * 200, " cafe "])
-def test_busqueda_v2_devuelve_lo_mismo_que_v1(cliente: TestClient, q: str) -> None:
-    v1 = cliente.get("/api/v1/productos", params={"q": q})
+def test_busqueda_v2_devuelve_lo_que_dicen_las_reglas_de_busqueda(
+    cliente: TestClient, q: str
+) -> None:
     v2 = cliente.get("/api/v2/productos", params={"q": q})
 
-    assert v2.status_code == v1.status_code == 200
-    assert [p["id"] for p in v2.json()] == [p["id"] for p in v1.json()]
-    assert v2.json() == [_v2(p) for p in v1.json()]
+    assert v2.status_code == 200
+    assert [p["id"] for p in v2.json()] == [p["id"] for p in _esperados(q)]
+    assert v2.json() == [_v2(p) for p in _esperados(q)]
 
 
-def test_q_demasiado_largo_da_el_mismo_422_que_v1(cliente: TestClient) -> None:
-    v1 = cliente.get("/api/v1/productos", params={"q": "a" * 201})
+def test_q_demasiado_largo_da_422(cliente: TestClient) -> None:
     v2 = cliente.get("/api/v2/productos", params={"q": "a" * 201})
 
-    assert v2.status_code == v1.status_code == 422
-    assert v2.json() == v1.json() == {"detail": "Parámetro q no válido"}
+    assert v2.status_code == 422
+    assert v2.json() == {"detail": "Parámetro q no válido"}
 
 
 @pytest.mark.parametrize("id_", ["no-existe", "ana@example.com", "%20", "A" * 300])
-def test_id_inexistente_da_el_mismo_404_que_v1(cliente: TestClient, id_: str) -> None:
-    v1 = cliente.get(f"/api/v1/productos/{id_}")
+def test_id_inexistente_da_404(cliente: TestClient, id_: str) -> None:
     v2 = cliente.get(f"/api/v2/productos/{id_}")
 
-    assert v2.status_code == v1.status_code == 404
-    assert v2.json() == v1.json()
+    assert v2.status_code == 404
+    assert v2.json() == {"detail": "Producto no encontrado"}
 
 
 def test_busqueda_v2_no_registra_el_texto_de_q(
