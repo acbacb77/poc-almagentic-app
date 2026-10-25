@@ -1,0 +1,36 @@
+# Evals de los agentes de triage y revisor (tarea C). Se lanzan a mano antes de cambiar
+# el modelo de un agente: Actions → evals → Run workflow, con el modelo actual y el candidato.
+# Los casos y el script viven en poc-almagentic-core; aquí solo se elige qué comparar.
+name: evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      modelos:
+        description: Modelos a comparar, separados por comas
+        type: string
+        default: sonnet,haiku
+      agente:
+        description: Agente a evaluar
+        type: choice
+        options: [ambos, triage, revisor]
+        default: ambos
+      repeticiones:
+        description: Repeticiones de cada caso
+        type: number
+        default: 1
+
+permissions: {}
+
+jobs:
+  evals:
+    permissions:
+      contents: read
+    uses: acbacb77/poc-almagentic-core/.github/workflows/reusable-evals.yml@v1
+    with:
+      modelos: ${{ inputs.modelos }}
+      agente: ${{ inputs.agente == 'ambos' && '' || inputs.agente }}
+      repeticiones: ${{ inputs.repeticiones }}
+      min-acierto: "0"
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
