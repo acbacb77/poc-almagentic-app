@@ -1,11 +1,22 @@
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from app.api.v1.productos import LONGITUD_MAXIMA_Q, CatalogoDep
-from app.catalogo import Producto
+from app.catalogo import Catalogo, Producto
 from app.observabilidad import registrar_busqueda
 
 router = APIRouter(prefix="/api/v2/productos", tags=["productos"])
+
+LONGITUD_MAXIMA_Q = 200
+
+
+def _catalogo(request: Request) -> Catalogo:
+    catalogo: Catalogo = request.app.state.catalogo
+    return catalogo
+
+
+CatalogoDep = Annotated[Catalogo, Depends(_catalogo)]
 
 
 class Precio(BaseModel):
@@ -25,7 +36,7 @@ def a_v2(producto: Producto, moneda: str) -> ProductoV2:
     return ProductoV2(id=producto.id, nombre=producto.nombre, precio=precio)
 
 
-# Mismas reglas que v1 para `q` y para los errores (FR-006, FR-007).
+# Reglas de `q` y de errores de las specs 002 y 003 (FR-006, FR-007).
 @router.get("", responses={422: {"description": "Parámetro q no válido"}})
 def listar_productos(catalogo: CatalogoDep, q: str | None = None) -> list[ProductoV2]:
     texto = (q or "").strip()

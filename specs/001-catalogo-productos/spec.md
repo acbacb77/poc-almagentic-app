@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Retirada**: la API v1 que define esta spec está retirada por la [spec 005](../005-retirar-api-v1/spec.md) (todas las rutas `/api/v1/` responden 410). Se conserva como histórico y como fuente de las reglas que reutiliza v2.
+
 **Issue**: #5
 
 **Input**: User description: "Un endpoint que devuelva el catálogo de productos (identificador, nombre y precio) para que la tienda web lo muestre, y que permita consultar un producto por id. Si el id no existe, responde 404." Completado con las respuestas del responsable en el issue #5.

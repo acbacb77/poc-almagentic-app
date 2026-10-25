@@ -1,61 +1,47 @@
-from decimal import Decimal
-from typing import Annotated
+"""API v1 retirada (spec 005): toda ruta bajo /api/v1/ responde 410 Gone."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
+from urllib.parse import quote
 
-from app.catalogo import Catalogo, Producto
-from app.observabilidad import registrar_busqueda
-
-router = APIRouter(prefix="/api/v1/productos", tags=["productos"])
-
-LONGITUD_MAXIMA_Q = 200
+from fastapi import APIRouter, Request, Response
+from fastapi.responses import JSONResponse
+from starlette.convertors import StringConvertor, register_url_convertor
 
 
-class ProductoV1(BaseModel):
-    """Forma publicada de v1: no incluye la moneda (spec 004, FR-013)."""
+class _RestoDeRuta(StringConvertor):
+    """Como `path`, pero también casa saltos de línea: ninguna ruta de v1 escapa al 410."""
 
-    id: str
-    nombre: str
-    precio: Decimal = Field(
-        description="Importe en euros, IVA incluido, con exactamente 2 decimales."
-    )
+    regex = r"[\s\S]*"
 
 
-def a_v1(producto: Producto) -> ProductoV1:
-    return ProductoV1(id=producto.id, nombre=producto.nombre, precio=producto.precio)
+register_url_convertor("resto", _RestoDeRuta())
+
+router = APIRouter(prefix="/api/v1", tags=["v1 (retirada)"])
+
+# Fechas fijas de la spec 004 (FR-010 y FR-012): RFC 9745 (Deprecation) y RFC 8594 (Sunset).
+DEPRECATION = "@1792969200"
+SUNSET = "Wed, 28 Oct 2026 23:00:00 GMT"
+MENSAJE = "Este recurso ha sido retirado"
+METODOS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
 
-def _catalogo(request: Request) -> Catalogo:
-    catalogo: Catalogo = request.app.state.catalogo
-    return catalogo
+def _enlace_v2(request: Request) -> str:
+    # Mismo path con v1 → v2; lo recibido se codifica para no inyectar cabeceras ni destinos.
+    destino = "/api/v2/" + quote(request.path_params["ruta"], safe="/")
+    if "q" in request.query_params:
+        destino += "?q=" + quote(request.query_params["q"], safe="")
+    return f'<{destino}>; rel="successor-version"'
 
 
-CatalogoDep = Annotated[Catalogo, Depends(_catalogo)]
-
-
-# `q` se valida a mano: la longitud cuenta tras quitar espacios y el 422 por
-# defecto de FastAPI devolvería el texto recibido (FR-009, FR-012).
-@router.get(
-    "",
-    responses={422: {"description": "Parámetro q no válido"}},
-)
-def listar_productos(catalogo: CatalogoDep, q: str | None = None) -> list[ProductoV1]:
-    texto = (q or "").strip()
-    if not texto:
-        return [a_v1(p) for p in catalogo.productos]
-    if len(texto) > LONGITUD_MAXIMA_Q:
-        raise HTTPException(status_code=422, detail="Parámetro q no válido")
-    encontrados = catalogo.buscar_por_nombre(texto)
-    registrar_busqueda(len(texto), len(encontrados))
-    return [a_v1(p) for p in encontrados]
-
-
-# `id` es un texto opaco sin restricciones: cualquier valor que no coincida
-# con un producto recibe 404, nunca 422.
-@router.get("/{id}", responses={404: {"description": "Producto no encontrado"}})
-def consultar_producto(id: str, catalogo: CatalogoDep) -> ProductoV1:
-    producto = catalogo.buscar(id)
-    if producto is None:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return a_v1(producto)
+# Una sola ruta comodín: así v1 no valida nada (ni 404, ni 405, ni 422) y la plantilla
+# registrada en las métricas es siempre la misma (cardinalidad acotada).
+# No se publica en OpenAPI (FR-016).
+@router.api_route("/{ruta:resto}", methods=METODOS, include_in_schema=False)
+def retirada(request: Request) -> Response:
+    cabeceras = {
+        "Deprecation": DEPRECATION,
+        "Sunset": SUNSET,
+        "Link": _enlace_v2(request),
+    }
+    if request.method == "HEAD":
+        return Response(status_code=410, headers=cabeceras)
+    return JSONResponse({"detail": MENSAJE}, status_code=410, headers=cabeceras)

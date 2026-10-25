@@ -136,7 +136,7 @@ Quien lea el repositorio o la documentación de la API no ve v1 como una API vig
 
 **Pruebas, specs y documentación**
 
-- **FR-014**: Los tests que verifican el comportamiento de v1 (listado, búsqueda, detalle, errores 404 y 422, cabeceras de obsolescencia) DEBEN sustituirse por tests de la respuesta 410 (código, mensaje genérico, cabeceras y cobertura de métodos y rutas). Los tests de v2 y de `/health` NO DEBEN modificarse y deben seguir pasando.
+- **FR-014**: Los tests que verifican el comportamiento de v1 (listado, búsqueda, detalle, errores 404 y 422, cabeceras de obsolescencia) DEBEN sustituirse por tests de la respuesta 410 (código, mensaje genérico, cabeceras y cobertura de métodos y rutas). Los tests de v2 y de observabilidad solo pueden adaptarse para dejar de depender de v1 (comparar con el catálogo y las reglas de búsqueda, o usar rutas v2 con los mismos estados y comprobaciones), sin relajar ninguna comprobación sobre v2; los tests de `/health` NO DEBEN modificarse y deben seguir pasando.
 - **FR-015**: Las specs 001, 002 y 003 DEBEN indicar en su cabecera que v1 está retirada por la spec 005, sin borrarse: se conservan como histórico y como fuente de las reglas que v2 reutiliza. La spec 004 se conserva sin cambios de contenido.
 - **FR-016**: La documentación de la API generada por la aplicación NO DEBE publicar los endpoints de v1 como operaciones activas.
 
@@ -152,7 +152,7 @@ Quien lea el repositorio o la documentación de la API no ve v1 como una API vig
 - **SC-001**: El 100 % de las llamadas a rutas bajo `/api/v1/`, con cualquier método, devuelve 410.
 - **SC-002**: El 100 % de las respuestas 410 lleva `Deprecation`, `Sunset` y un `Link` con `rel="successor-version"` hacia la ruta v2 equivalente, con los valores indicados en esta spec.
 - **SC-003**: El 0 % de las respuestas de v1 contiene datos del catálogo o texto recibido del cliente.
-- **SC-004**: Las respuestas de v2 y de `/health` son idénticas a las anteriores al cambio en el 100 % de los casos probados, y sus tests pasan sin modificarse.
+- **SC-004**: Las respuestas de v2 y de `/health` son idénticas a las anteriores al cambio en el 100 % de los casos probados, y sus tests pasan; los de v2 y observabilidad solo se han adaptado para no depender de v1, sin relajar ninguna comprobación.
 - **SC-005**: Tras desplegar, el panel «Consultas por versión de la API» muestra para v1 únicamente respuestas 410.
 - **SC-006**: En ningún log ni métrica de v1 aparece el texto de `q`, el `id` ni la ruta recibida.
 - **SC-007**: Una persona que migra un cliente de v1 a v2 puede hallar el destino correcto solo con la respuesta 410 recibida, sin consultar documentación adicional.

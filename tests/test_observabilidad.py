@@ -10,8 +10,8 @@ from prometheus_client import REGISTRY
 from app.main import create_app
 from app.observabilidad import SinQueryString, iniciar_metricas
 
-RUTA_LISTADO = "/api/v1/productos"
-RUTA_PRODUCTO = "/api/v1/productos/{id}"
+RUTA_LISTADO = "/api/v2/productos"
+RUTA_PRODUCTO = "/api/v2/productos/{id}"
 
 
 @pytest.fixture
@@ -31,9 +31,9 @@ def _logs(caplog: pytest.LogCaptureFixture) -> list[dict[str, Any]]:
 @pytest.mark.parametrize(
     ("url", "ruta", "estado"),
     [
-        ("/api/v1/productos", RUTA_LISTADO, 200),
-        ("/api/v1/productos/cafe-molido-250g", RUTA_PRODUCTO, 200),
-        ("/api/v1/productos/no-existe", RUTA_PRODUCTO, 404),
+        ("/api/v2/productos", RUTA_LISTADO, 200),
+        ("/api/v2/productos/cafe-molido-250g", RUTA_PRODUCTO, 200),
+        ("/api/v2/productos/no-existe", RUTA_PRODUCTO, 404),
     ],
 )
 def test_cada_consulta_deja_un_log_estructurado(
@@ -56,7 +56,7 @@ def test_el_log_no_contiene_datos_del_cliente(
 ) -> None:
     with caplog.at_level(logging.INFO, logger="app.consultas"):
         cliente.get(
-            "/api/v1/productos/ana.garcia@example.com?token=secreto",
+            "/api/v2/productos/ana.garcia@example.com?token=secreto",
             headers={"User-Agent": "navegador-de-ana", "Authorization": "Bearer secreto"},
         )
 
@@ -68,9 +68,9 @@ def test_el_log_no_contiene_datos_del_cliente(
 @pytest.mark.parametrize(
     ("url", "ruta", "estado"),
     [
-        ("/api/v1/productos", RUTA_LISTADO, "200"),
-        ("/api/v1/productos/cafe-molido-250g", RUTA_PRODUCTO, "200"),
-        ("/api/v1/productos/no-existe", RUTA_PRODUCTO, "404"),
+        ("/api/v2/productos", RUTA_LISTADO, "200"),
+        ("/api/v2/productos/cafe-molido-250g", RUTA_PRODUCTO, "200"),
+        ("/api/v2/productos/no-existe", RUTA_PRODUCTO, "404"),
     ],
 )
 def test_cada_consulta_incrementa_su_metrica(
@@ -95,9 +95,28 @@ def test_cada_consulta_incrementa_su_metrica(
     )
 
 
+def test_el_410_de_v1_deja_log_y_metrica_sin_la_ruta_recibida(
+    cliente: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    ruta = "/api/v1/{ruta:resto}"
+    antes = _consultas(ruta, "410")
+
+    with caplog.at_level(logging.INFO, logger="app.consultas"):
+        respuesta = cliente.get("/api/v1/productos/ana.garcia@example.com?q=secreto")
+
+    assert respuesta.status_code == 410
+    [log] = _logs(caplog)
+    assert set(log) == {"evento", "metodo", "ruta", "estado", "duracion_ms"}
+    assert log["ruta"] == ruta
+    assert log["estado"] == 410
+    for texto in ("ana", "example.com", "secreto", "productos"):
+        assert texto not in caplog.text
+    assert _consultas(ruta, "410") == antes + 1
+
+
 def test_metrics_va_en_un_puerto_propio_sin_identificadores(cliente: TestClient) -> None:
-    cliente.get("/api/v1/productos")
-    cliente.get("/api/v1/productos/identificador-arbitrario")
+    cliente.get("/api/v2/productos")
+    cliente.get("/api/v2/productos/identificador-arbitrario")
 
     puerto = iniciar_metricas(0)
     with urlopen(f"http://127.0.0.1:{puerto}/metrics", timeout=5) as respuesta:  # noqa: S310
@@ -105,8 +124,8 @@ def test_metrics_va_en_un_puerto_propio_sin_identificadores(cliente: TestClient)
         tipo = respuesta.headers["content-type"]
 
     assert tipo.startswith("text/plain")
-    assert 'app_consultas_total{estado="200",metodo="GET",ruta="/api/v1/productos"}' in texto
-    assert 'ruta="/api/v1/productos/{id}"' in texto
+    assert 'app_consultas_total{estado="200",metodo="GET",ruta="/api/v2/productos"}' in texto
+    assert 'ruta="/api/v2/productos/{id}"' in texto
     assert "identificador-arbitrario" not in texto
     assert iniciar_metricas(0) == puerto  # una sola vez por proceso
 
@@ -145,7 +164,7 @@ def test_la_busqueda_registra_longitud_y_resultados_sin_el_texto(
     cliente: TestClient, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO, logger="app.consultas"):
-        cliente.get("/api/v1/productos", params={"q": "  taza  "})
+        cliente.get("/api/v2/productos", params={"q": "  taza  "})
 
     eventos = [log for log in _logs(caplog) if log["evento"] == "busqueda"]
     assert eventos == [{"evento": "busqueda", "longitud_q": 4, "resultados": 2}]
@@ -155,8 +174,8 @@ def test_la_busqueda_registra_longitud_y_resultados_sin_el_texto(
 def test_la_busqueda_incrementa_su_metrica_segun_haya_resultados(cliente: TestClient) -> None:
     con, sin = _busquedas("con_resultados"), _busquedas("sin_resultados")
 
-    cliente.get("/api/v1/productos", params={"q": "taza"})
-    cliente.get("/api/v1/productos", params={"q": "inexistente"})
+    cliente.get("/api/v2/productos", params={"q": "taza"})
+    cliente.get("/api/v2/productos", params={"q": "inexistente"})
 
     assert _busquedas("con_resultados") == con + 1
     assert _busquedas("sin_resultados") == sin + 1
@@ -168,8 +187,8 @@ def test_sin_q_o_con_q_vacio_no_hay_evento_de_busqueda(
     antes = _busquedas("con_resultados") + _busquedas("sin_resultados")
 
     with caplog.at_level(logging.INFO, logger="app.consultas"):
-        cliente.get("/api/v1/productos")
-        cliente.get("/api/v1/productos", params={"q": "  "})
+        cliente.get("/api/v2/productos")
+        cliente.get("/api/v2/productos", params={"q": "  "})
 
     assert [log for log in _logs(caplog) if log["evento"] == "busqueda"] == []
     assert _busquedas("con_resultados") + _busquedas("sin_resultados") == antes
@@ -185,14 +204,14 @@ def test_el_log_de_acceso_de_uvicorn_no_incluye_la_query_string(
             '%s - "%s %s HTTP/%s" %d',
             "127.0.0.1:1234",
             "GET",
-            "/api/v1/productos?q=secreto",
+            "/api/v2/productos?q=secreto",
             "1.1",
             200,
         )
         acceso.info('%s - "%s %s HTTP/%s" %d', "127.0.0.1:1234", "GET", "/health", "1.1", 200)
 
     mensajes = [r.getMessage() for r in caplog.records if r.name == "uvicorn.access"]
-    assert 'GET /api/v1/productos HTTP/1.1" 200' in mensajes[0]
+    assert 'GET /api/v2/productos HTTP/1.1" 200' in mensajes[0]
     assert "secreto" not in mensajes[0] and "?" not in mensajes[0]
     assert 'GET /health HTTP/1.1" 200' in mensajes[1]
 
