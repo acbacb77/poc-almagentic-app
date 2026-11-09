@@ -5,7 +5,7 @@ description = "API REST de ejemplo de la POC de ALM agéntico"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "fastapi==0.160.0",
+    "fastapi==0.162.0",
     "prometheus-client==0.26.0",
     "uvicorn==0.54.0",
 ]
@@ -13,9 +13,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "httpx2==2.16.0",
-    "mypy==2.4.0",
-    "pytest==9.1.1",
-    "ruff==0.17.1",
+    "mypy==2.4.1",
+    "pytest==9.2.0",
+    "ruff==0.17.4",
 ]
 
 [tool.uv]
